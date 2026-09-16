@@ -1,0 +1,38 @@
+{
+  "name": "@gateai/react-native",
+  "version": "0.1.0",
+  "description": "Gate/AI react-native SDK for iOS and Android",
+  "license": "MIT",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist",
+    "src",
+    "ios",
+    "android/build.gradle",
+    "android/consumer-rules.pro",
+    "android/src",
+    "native",
+    "*.podspec",
+    "Package.swift",
+    "react-native.config.js",
+    "README.md",
+    "LICENSE",
+    "android/gate-core-version.gradle"
+  ],
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "prepack": "npm run build"
+  },
+  "devDependencies": {
+    "typescript": "^5.9.2",
+    "react-native": "0.81.0",
+    "react": "19.1.0",
+    "@types/react": "^19.1.0"
+  },
+  "react-native": "src/index.ts",
+  "peerDependencies": {
+    "react-native": ">=0.76 <1",
+    "react": ">=18"
+  }
+}
