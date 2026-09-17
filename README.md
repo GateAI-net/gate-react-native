@@ -7,7 +7,7 @@ Native Gate/AI authentication and proxy requests for iOS and Android.
 From this directory run `npm ci && npm pack`, then install the resulting tarball in your app:
 
 ```sh
-npm install /absolute/path/to/gateai-react-native-0.1.0.tgz
+npm install /absolute/path/to/gateai-react-native-1.0.0.tgz
 cd ios && pod install
 ```
 

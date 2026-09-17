@@ -1,6 +1,6 @@
 {
   "name": "@gateai/react-native",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "description": "Gate/AI react-native SDK for iOS and Android",
   "license": "MIT",
   "homepage": "https://gate-ai.net",
