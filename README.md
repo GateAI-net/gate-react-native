@@ -2,14 +2,16 @@
 
 Native Gate/AI authentication and proxy requests for iOS and Android.
 
-## Local installation
+## Installation
 
-From this directory run `npm ci && npm pack`, then install the resulting tarball in your app:
+The SDK is distributed from this repository and pinned to a release tag; it is not published to the npm registry. From your app directory:
 
 ```sh
-npm install /absolute/path/to/gateai-react-native-1.0.0.tgz
+npm install github:GateAI-net/gate-react-native#1.0.0
 cd ios && pod install
 ```
+
+npm builds the package from source on install, so Node 22 or later is required. See the [releases](https://github.com/GateAI-net/gate-react-native/releases) for available versions.
 
 Rebuild the native app after installation. Autolinking registers the module on iOS and Android. The React Native adapter uses the native module bridge (including React Native's interoperability layer), with a React Native 0.81 development baseline. Expo requires a custom development build; Expo Go is unsupported. Web and desktop are unsupported.
 
