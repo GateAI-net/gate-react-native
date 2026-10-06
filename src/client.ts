@@ -36,6 +36,38 @@ export interface GateAIResponse {
   body: string;
 }
 
+/** Starts an OpenAI Realtime WebRTC call; see {@link GateAIClientBase.createRealtimeCall}. */
+export interface GateAIRealtimeCallRequest {
+  /** The local SDP offer from `RTCPeerConnection.createOffer`. */
+  offerSdp: string;
+  /** OpenAI session configuration, e.g. `{ type: 'realtime', model: 'gpt-realtime' }`. */
+  session: Record<string, unknown>;
+  headers?: Record<string, string>;
+  context?: GateAIContext;
+}
+
+export interface GateAIRealtimeCallAnswer {
+  /** The SDP answer to apply with `RTCPeerConnection.setRemoteDescription`. */
+  sdp: string;
+  /** OpenAI's call ID (from the `Location` header); Gate/AI records the call's usage under it. */
+  callId?: string;
+}
+
+const REALTIME_CALL_PATH = 'v1/realtime/calls';
+
+/** @internal Multipart body for OpenAI's `POST /v1/realtime/calls`: the SDP offer plus the session JSON. */
+export function realtimeCallBody(offerSdp: string, session: Record<string, unknown>, boundary: string): string {
+  return `--${boundary}\r\nContent-Disposition: form-data; name="sdp"\r\nContent-Type: application/sdp\r\n\r\n${offerSdp}` +
+    `\r\n--${boundary}\r\nContent-Disposition: form-data; name="session"\r\nContent-Type: application/json\r\n\r\n${JSON.stringify(session)}` +
+    `\r\n--${boundary}--\r\n`;
+}
+
+/** @internal */
+export function realtimeCallId(location: string | undefined): string | undefined {
+  const last = location?.split('?')[0]?.replace(/\/+$/, '').split('/').pop();
+  return last?.startsWith('rtc_') ? last : undefined;
+}
+
 export class GateAIError extends Error {
   constructor(
     public readonly code: string,
@@ -146,6 +178,26 @@ export class GateAIClientBase {
       throw new GateAIError('http', `HTTP ${response.status}`, response.status, response.headers, response.body);
     }
     return response;
+  }
+
+  /**
+   * Starts an OpenAI Realtime WebRTC call through the gate. The gate forwards the SDP offer to
+   * OpenAI with your provider key and returns the answer; audio then flows directly between the
+   * device and OpenAI while the gate meters the call and applies your usage limits throughout.
+   * Ephemeral client secrets are not available through a gate because they bypass metering.
+   */
+  async createRealtimeCall(options: GateAIRealtimeCallRequest): Promise<GateAIRealtimeCallAnswer> {
+    const boundary = `gateai-${Date.now().toString(36)}-${Math.random().toString(36).slice(2)}`;
+    const response = await this.request({
+      path: REALTIME_CALL_PATH,
+      method: 'POST',
+      body: realtimeCallBody(options.offerSdp, options.session, boundary),
+      headers: { ...(options.headers ?? {}), 'Content-Type': `multipart/form-data; boundary=${boundary}` },
+      context: options.context,
+    });
+    if (!response.body) throw new GateAIError('invalid_response', 'Empty SDP answer from the gate.', response.status, response.headers);
+    const location = Object.entries(response.headers).find(([key]) => key.toLowerCase() === 'location')?.[1];
+    return { sdp: response.body, callId: realtimeCallId(location) };
   }
 
   /** For custom transports; callers handle nonce challenges and HTTP errors themselves. */

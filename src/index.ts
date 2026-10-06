@@ -1,7 +1,7 @@
 import { NativeModules, Platform } from 'react-native';
 import { GateAIClientBase, GateAIError, type GateAIConfiguration } from './client';
 export { GateAIError } from './client';
-export type { GateAIConfiguration, GateAIContext, GateAIRequest, GateAIResponse } from './client';
+export type { GateAIConfiguration, GateAIContext, GateAIRequest, GateAIResponse, GateAIRealtimeCallRequest, GateAIRealtimeCallAnswer } from './client';
 export type GateAIClient = GateAIClientBase;
 export const GateAIClient = {
   async create(configuration: GateAIConfiguration): Promise<GateAIClient> {
