@@ -49,7 +49,7 @@ import java.util.UUID
  *
  * // Make authenticated requests
  * val response = client.performProxyRequest(
- *     path = "openai/chat/completions",
+ *     path = "v1/chat/completions",
  *     method = HttpMethod.POST,
  *     body = requestBody.toByteArray(),
  *     additionalHeaders = mapOf("Content-Type" to "application/json")
@@ -176,7 +176,7 @@ class GateAIClient internal constructor(
      * This method automatically obtains a valid access token, generates the DPoP proof,
      * and includes analytics headers for the request.
      *
-     * @param path The path relative to your base URL (e.g., "openai/chat/completions")
+     * @param path The path relative to your base URL (e.g., "v1/chat/completions")
      * @param method The HTTP method to use
      * @param nonce Optional DPoP nonce from a previous 401 response for retry
      * @return A map containing Authorization, DPoP, and analytics headers
@@ -240,7 +240,7 @@ class GateAIClient internal constructor(
      * This is the recommended method for making authenticated requests through the Gate/AI proxy.
      * It automatically handles authentication, DPoP proof generation, and nonce challenges.
      *
-     * @param path The path relative to your base URL (e.g., "openai/chat/completions")
+     * @param path The path relative to your base URL (e.g., "v1/chat/completions")
      * @param method The HTTP method to use
      * @param body Optional request body data
      * @param additionalHeaders Additional headers to include in the request (e.g., "Content-Type")
@@ -258,7 +258,7 @@ class GateAIClient internal constructor(
      * """.trimIndent()
      *
      * val response = client.performProxyRequest(
-     *     path = "openai/chat/completions",
+     *     path = "v1/chat/completions",
      *     method = HttpMethod.POST,
      *     body = requestBody.toByteArray(),
      *     additionalHeaders = mapOf("Content-Type" to "application/json")

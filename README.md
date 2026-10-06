@@ -31,7 +31,7 @@ const client = await GateAIClient.create({
 
 try {
   const response = await client.request({
-    path: 'openai/chat/completions',
+    path: 'v1/chat/completions',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
       model: 'your-enabled-model',
@@ -59,7 +59,7 @@ await client.dispose();
 
 ## Requests and errors
 
-`request` buffers UTF-8 text and JSON responses and returns `{status, headers, body}`. It supports GET and POST. Serialize JSON explicitly and set `Content-Type: application/json`. Paths are relative to the configured HTTPS origin, for example `openai/chat/completions`; full URLs, query strings, fragments, percent escapes, and dot segments are rejected. Binary bodies, streaming events, and cancellation are not part of this first version.
+`request` buffers UTF-8 text and JSON responses and returns `{status, headers, body}`. It supports GET and POST. Serialize JSON explicitly and set `Content-Type: application/json`. Paths are relative to the configured HTTPS origin, for example `v1/chat/completions`; full URLs, query strings, fragments, percent escapes, and dot segments are rejected. Binary bodies, streaming events, and cancellation are not part of this first version.
 
 Authentication, token refresh, device keys, and one retry on a DPoP nonce challenge are handled by the native SDK. Non-2xx responses throw a typed error with `status`, `headers`, and `body`; network/attestation failures have a code and message. Response headers preserve quota and retry information, including `X-Quota-*` and `Retry-After`. Error codes from platform attestation may differ between iOS and Android; use `status` for HTTP decisions.
 
@@ -68,6 +68,25 @@ Authentication, token refresh, device keys, and one retry on a DPoP nonce challe
 Analytics are per request through `context`: `userStatus`, `userTier`, `userIdentifier`, `appFeature`, and `quotaAnchorDay` (1–31). Explicit headers override context values case-insensitively. Authorization, DPoP, Host, Content-Length, and Connection headers are managed by the SDK and cannot be overridden.
 
 `clearCachedState` clears the access-token cache. `dispose` releases the native client; requests already in flight can finish. These methods do not delete device or App Attest keys. Each client has independent token state; reuse a client instead of creating one per request.
+
+## Realtime voice (OpenAI)
+
+OpenAI's Realtime API runs over WebRTC. `createRealtimeCall` brokers the signalling through the gate so your provider key stays server-side: create the peer connection and SDP offer with your WebRTC library (for example `react-native-webrtc`), exchange it for OpenAI's answer, and audio then flows directly between the device and OpenAI. The gate meters every model turn and applies your usage limits for the whole call.
+
+```ts
+const offer = await peerConnection.createOffer();
+await peerConnection.setLocalDescription(offer);
+
+const answer = await client.createRealtimeCall({
+  offerSdp: offer.sdp,
+  session: { type: 'realtime', model: 'gpt-realtime' },
+  context: { appFeature: 'voice-assistant' },
+});
+await peerConnection.setRemoteDescription({ type: 'answer', sdp: answer.sdp });
+// answer.callId ("rtc_…") is how the call appears in your Gate/AI logs
+```
+
+A device that exhausts its token budget mid-call is hung up by the gate: the peer connection disconnects and the data channel closes. Ephemeral client secrets (`/v1/realtime/client_secrets`) are refused with 403 because they would bypass metering. See the [Realtime guide](https://portal.gate-ai.net/docs/realtime).
 
 ## Development and release status
 
