@@ -69,9 +69,9 @@ Analytics are per request through `context`: `userStatus`, `userTier`, `userIden
 
 `clearCachedState` clears the access-token cache. `dispose` releases the native client; requests already in flight can finish. These methods do not delete device or App Attest keys. Each client has independent token state; reuse a client instead of creating one per request.
 
-## Realtime voice (OpenAI)
+## OpenAI Realtime
 
-OpenAI's Realtime API runs over WebRTC. `createRealtimeCall` brokers the signalling through the gate so your provider key stays server-side: create the peer connection and SDP offer with your WebRTC library (for example `react-native-webrtc`), exchange it for OpenAI's answer, and audio then flows directly between the device and OpenAI. The gate meters every model turn and applies your usage limits for the whole call.
+Follow OpenAI's WebRTC guide with one change: instead of fetching an ephemeral key and posting your SDP offer to OpenAI yourself, call `createRealtimeCall`. It takes the offer and your session configuration and returns the SDP answer to apply to the peer connection. Use whichever WebRTC library you already use (for example `react-native-webrtc`).
 
 ```ts
 const offer = await peerConnection.createOffer();
@@ -83,10 +83,10 @@ const answer = await client.createRealtimeCall({
   context: { appFeature: 'voice-assistant' },
 });
 await peerConnection.setRemoteDescription({ type: 'answer', sdp: answer.sdp });
-// answer.callId ("rtc_…") is how the call appears in your Gate/AI logs
+// answer.callId ("rtc_…") is how the session appears in your Gate/AI logs
 ```
 
-A device that exhausts its token budget mid-call is hung up by the gate: the peer connection disconnects and the data channel closes. Ephemeral client secrets (`/v1/realtime/client_secrets`) are refused with 403 because they would bypass metering. See the [Realtime guide](https://portal.gate-ai.net/docs/realtime).
+The gate meters every model response and applies your usage limits for the whole session. If a device's token budget runs out mid-session the gate ends it: the peer connection disconnects and the data channel closes, and the next `createRealtimeCall` returns a 429 with the quota details. Ephemeral client secrets (`/v1/realtime/client_secrets`) are not used through a gate and are refused with 403. See the [Realtime guide](https://portal.gate-ai.net/docs/realtime).
 
 ## Development and release status
 
