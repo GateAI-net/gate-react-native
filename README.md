@@ -7,7 +7,7 @@ Native Gate/AI authentication and proxy requests for iOS and Android.
 The SDK is distributed from this repository and pinned to a release tag; it is not published to the npm registry. From your app directory:
 
 ```sh
-npm install github:GateAI-net/gate-react-native#1.0.0
+npm install github:GateAI-net/gate-react-native#1.1.0
 cd ios && pod install
 ```
 
